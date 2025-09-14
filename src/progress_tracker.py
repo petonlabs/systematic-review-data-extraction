@@ -44,7 +44,11 @@ class ProgressTracker:
                         completed_at TIMESTAMP,
                         error_message TEXT,
                         full_text_source TEXT,
-                        extraction_summary TEXT
+                        extraction_summary TEXT,
+                        pdf_stored BOOLEAN DEFAULT 0,
+                        r2_key TEXT,
+                        extraction_method TEXT,
+                        content_length INTEGER
                     )
                 ''')
                 
