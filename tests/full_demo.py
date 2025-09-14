@@ -197,7 +197,7 @@ async def run_full_demo(max_articles=3, enable_sheets_update=False):
         print(f"\n🎉 Demo completed!")
         print(f"\n📋 Next Steps:")
         print(f"   • To process ALL {len(articles)} articles: python main.py")
-        print(f"   • To check progress anytime: python status.py")
+        print(f"   • To check progress anytime: python tests/status.py")
         print(f"   • Results are stored in progress.db")
         
         return success_count > 0

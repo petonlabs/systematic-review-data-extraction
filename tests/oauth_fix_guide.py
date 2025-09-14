@@ -41,7 +41,7 @@ Here's the corrected process:
 📋 STEP 3: Test the Setup
 
 Run this command to test:
-    python test_setup.py
+    python tests/test_setup.py
 
 If you still get access_denied errors:
 
@@ -67,7 +67,7 @@ If OAuth keeps failing, you can use a Service Account instead:
 
 🔄 NEXT STEPS:
 1. Follow the corrected setup above
-2. Run: python test_setup.py
+2. Run: python tests/test_setup.py
 3. If successful, run: python demo.py to see data extraction in action
 
 """)

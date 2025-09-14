@@ -28,7 +28,7 @@ def print_api_enabler_guide():
     print("5. Wait 2-3 minutes for the APIs to propagate")
     print()
     print("6. Run the test again:")
-    print("   python test_setup.py")
+    print("   python tests/test_setup.py")
     print()
     print("⚠️  Note: It may take a few minutes for the API changes to take effect.")
     print()

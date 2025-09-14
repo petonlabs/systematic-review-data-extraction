@@ -74,12 +74,55 @@ class RateLimitConfig:
     exponential_backoff: bool = True
 
 
+@dataclass
+class PdfConfig:
+    """Configuration for PDF processing."""
+    max_text_length: int = 50000  # Maximum characters to extract from PDF
+    page_chunk_size: int = 10  # Process pages in chunks
+    min_page_text_length: int = 50  # Minimum text length per page
+    timeout: int = 120  # Timeout for PDF processing operations
+    
+    # Memory management
+    max_memory_mb: int = 512  # Maximum memory usage for PDF processing
+    use_temp_files: bool = True  # Use temporary files for large PDFs
+
+
+@dataclass
+class R2Config:
+    """Configuration for Cloudflare R2 storage."""
+    endpoint_url: str = None
+    access_key_id: str = None
+    secret_access_key: str = None
+    bucket_name: str = None
+    region: str = "auto"  # Usually 'auto' for Cloudflare R2
+    
+    # Storage settings
+    pdf_prefix: str = "pdfs/"  # Prefix for PDF files in bucket
+    max_file_size_mb: int = 100  # Maximum PDF file size
+    retention_days: int = 365  # How long to keep PDFs
+    
+    def __post_init__(self):
+        # Load from environment variables if not provided
+        self.endpoint_url = self.endpoint_url or os.getenv('R2_ENDPOINT_URL')
+        self.access_key_id = self.access_key_id or os.getenv('R2_ACCESS_KEY_ID')
+        self.secret_access_key = self.secret_access_key or os.getenv('R2_SECRET_ACCESS_KEY')
+        self.bucket_name = self.bucket_name or os.getenv('R2_BUCKET_NAME')
+
+
 class Config:
     """Main configuration class."""
     
-    def __init__(self):
+    def __init__(self, spreadsheet_id: str = None):
+        # Use provided spreadsheet_id, environment variable, or default
+        default_spreadsheet_id = "1ki0z_9QHBg4uUCe4HVN5Rx7Tp6kzeIrJCGsnQTZku_Q"
+        final_spreadsheet_id = (
+            spreadsheet_id or 
+            os.getenv('GOOGLE_SHEETS_ID') or 
+            default_spreadsheet_id
+        )
+        
         self.sheets_config = SheetsConfig(
-            spreadsheet_id="1ki0z_9QHBg4uUCe4HVN5Rx7Tp6kzeIrJCGsnQTZku_Q"
+            spreadsheet_id=final_spreadsheet_id
         )
         
         self.fetcher_config = FetcherConfig(
@@ -90,6 +133,8 @@ class Config:
         self.extraction_config = ExtractionConfig()
         self.tracking_config = TrackingConfig()
         self.rate_limit_config = RateLimitConfig()
+        self.pdf_config = PdfConfig()
+        self.r2_config = R2Config()
         
         # Azure OpenAI configuration (loaded from .env)
         self.azure_config = {
@@ -109,5 +154,15 @@ class Config:
         
         if not self.sheets_config.spreadsheet_id:
             raise ValueError("Missing Google Sheets spreadsheet ID")
+        
+        return True
+    
+    def validate_r2_config(self) -> bool:
+        """Validate Cloudflare R2 configuration."""
+        required_r2_keys = ['endpoint_url', 'access_key_id', 'secret_access_key', 'bucket_name']
+        
+        for key in required_r2_keys:
+            if not getattr(self.r2_config, key):
+                return False
         
         return True

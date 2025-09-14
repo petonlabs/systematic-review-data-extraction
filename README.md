@@ -1,13 +1,15 @@
 # Systematic Review Data Extraction Tool
 
-An automated tool for extracting structured data from research articles in systematic reviews using DSPy and large language models.
+An automated tool for extracting structured data from research articles in systematic reviews using DSPy and large language models. **Now supports both web-based and PDF-based extraction methods with Cloudflare R2 storage!**
 
 ## 🎯 Purpose
 
 This tool automates the time-intensive process of data extraction in systematic reviews by:
 
 1. **Fetching articles** from Google Sheets containing DOIs/PMIDs
-2. **Retrieving full-text content** from various sources (DOI resolution, Unpaywall, CrossRef, PubMed Central)
+2. **Retrieving full-text content** using two methods:
+   - **Web-based extraction**: Direct fetching from various sources (DOI resolution, Unpaywall, CrossRef, PubMed Central)
+   - **PDF-based extraction**: Download, store, and process PDFs with memory-efficient text extraction
 3. **Extracting structured data** using DSPy LLM agents for:
    - Study characteristics
    - Population characteristics
@@ -16,19 +18,50 @@ This tool automates the time-intensive process of data extraction in systematic 
    - Secondary outcomes (clinical and economic impact)
    - Drivers, innovations, and policy context
 4. **Populating Google Sheets** with extracted data
-5. **Tracking progress** and logging results
+5. **Tracking progress** and logging results with method persistence
+
+## 🚀 New Features
+
+### PDF-Based Extraction
+- **PDF Download & Storage**: Automatically downloads PDFs and stores them in Cloudflare R2 for systematic archiving
+- **Memory-Efficient Processing**: Processes large PDFs in chunks to manage memory usage
+- **Fallback Mechanism**: Falls back to web-based extraction if PDF processing fails
+- **Progress Persistence**: Remembers your chosen extraction method and can resume from where you left off
+
+### Enhanced Configuration
+- **Method Selection**: Choose between web-based or PDF-based extraction at runtime
+- **Cloudflare R2 Integration**: Secure, scalable storage for research article PDFs
+- **Flexible Configuration**: Support for both extraction methods in the same tool
 
 ## 🏗️ Architecture
 
 ```
-main.py → Orchestrates the entire process
-├── src/config.py → Configuration management
+enhanced_main.py → New enhanced orchestrator with method selection
+├── src/config.py → Enhanced configuration (PDF + R2 settings)
 ├── src/sheets_client.py → Google Sheets API integration
-├── src/article_fetcher.py → Article retrieval from multiple sources
+├── src/enhanced_article_fetcher.py → NEW: PDF-first article retrieval
+├── src/pdf_processor.py → NEW: Memory-efficient PDF text extraction
+├── src/cloudflare_r2.py → NEW: PDF storage in Cloudflare R2
+├── src/extraction_mode_manager.py → NEW: Method selection & state management
 ├── src/data_extractor.py → DSPy-based data extraction
-├── src/progress_tracker.py → Progress tracking with SQLite
+├── src/progress_tracker.py → Enhanced progress tracking
 └── src/rate_limiter.py → API rate limiting
 ```
+
+### Extraction Methods
+
+**Web-based Extraction (Original)**
+- Fetches articles directly from web sources
+- Uses DOI resolution, Unpaywall, CrossRef, PMC
+- Faster for immediately accessible content
+- No additional storage requirements
+
+**PDF-based Extraction (New)**
+- Downloads PDFs from multiple sources
+- Stores PDFs in Cloudflare R2 for archival
+- Extracts text using memory-efficient processing
+- Better for systematic collection and offline processing
+- Supports large-scale archival workflows
 
 ## 🚀 Quick Start
 
@@ -53,7 +86,13 @@ uv sync
 ### 3. Configuration
 
 #### Azure OpenAI Setup
-Create/verify your `.env` file:
+Copy the template and configure your `.env` file:
+```bash
+cp .env.template .env
+# Edit .env with your credentials
+```
+
+Required settings for `.env`:
 ```bash
 # Azure OpenAI settings
 AI_PROVIDER=azure
@@ -65,7 +104,28 @@ AZURE_OPENAI_DEPLOYMENT=your-deployment-name
 # Optional: Email for API requests
 CROSSREF_EMAIL=your-email@university.edu
 UNPAYWALL_EMAIL=your-email@university.edu
+
+# For PDF-based extraction: Cloudflare R2 settings
+R2_ENDPOINT_URL=https://your-account-id.r2.cloudflarestorage.com
+R2_ACCESS_KEY_ID=your-r2-access-key-id
+R2_SECRET_ACCESS_KEY=your-r2-secret-access-key
+R2_BUCKET_NAME=systematic-review-pdfs
 ```
+
+#### Cloudflare R2 Setup (for PDF-based extraction)
+1. **Create Cloudflare R2 Account**: 
+   - Go to [Cloudflare Dashboard](https://dash.cloudflare.com)
+   - Navigate to R2 Object Storage
+   - Create a new bucket (e.g., `systematic-review-pdfs`)
+
+2. **Get R2 API Credentials**:
+   - Go to "Manage R2 API tokens"
+   - Create a new API token with R2 permissions
+   - Note down the Account ID, Access Key ID, and Secret Access Key
+
+3. **Configure R2 Settings**:
+   - Update your `.env` file with the R2 credentials
+   - The endpoint URL format: `https://<account-id>.r2.cloudflarestorage.com`
 
 #### Google Sheets Setup
 
@@ -89,20 +149,37 @@ UNPAYWALL_EMAIL=your-email@university.edu
 ### 4. Test Setup
 
 ```bash
-# Test the configuration
-uv run python test_setup.py
+# Test the enhanced functionality
+PYTHONPATH=. python3 tests/test_enhanced_functionality.py
+
+# Test both extraction methods with a single article
+PYTHONPATH=. python3 tests/test_enhanced_single_article.py
 ```
 
 This will verify:
 - ✅ DSPy configuration with Azure OpenAI
-- ✅ Progress tracking database
+- ✅ PDF processing capabilities
+- ✅ Cloudflare R2 connection (if configured)
+- ✅ Enhanced article fetcher
+- ✅ Extraction mode management
 - ✅ Google Sheets connection (if credentials are set up)
 
-### 5. Run Full Extraction
+### 5. Run Enhanced Extraction
 
 ```bash
-# Start the main extraction process
-uv run python main.py
+# Start the enhanced extraction process with method selection
+python3 enhanced_main.py
+```
+
+**Interactive Method Selection:**
+- Choose between web-based and PDF-based extraction
+- Configure PDF storage options
+- Resume from previous runs automatically
+
+**Alternatively, use the original script:**
+```bash
+# Use the original main script (web-based only)
+python3 main.py
 ```
 
 ## 📊 Google Sheets Structure
@@ -186,6 +263,7 @@ The tool maintains progress in several ways:
 
 ## 🛠️ Article Fetching Strategy
 
+### Web-Based Method (Original)
 The tool attempts to retrieve full-text articles from multiple sources:
 
 1. **Direct DOI Resolution** - Try to access article directly
@@ -194,6 +272,20 @@ The tool attempts to retrieve full-text articles from multiple sources:
 4. **PubMed Central** - For PMC articles
 5. **arXiv** - For preprints
 6. **Metadata Only** - If full text unavailable
+
+### PDF-Based Method (New)
+Enhanced PDF-first approach with systematic archival:
+
+1. **Check R2 Storage** - Look for previously stored PDFs
+2. **Multi-source PDF Download** - Fetch PDFs from:
+   - Direct DOI resolution
+   - Unpaywall API
+   - PubMed Central
+   - arXiv
+   - Publisher direct links
+3. **Store in R2** - Archive PDFs in Cloudflare R2
+4. **Memory-Efficient Extraction** - Process PDFs in chunks
+5. **Fallback to Web** - Use web-based method if PDF fails
 
 ## 🧠 DSPy Data Extraction
 
