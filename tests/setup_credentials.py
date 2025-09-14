@@ -73,7 +73,7 @@ def main():
     print("="*50)
     
     if check_credentials():
-        print("\n✅ You're all set! Run 'python test_setup.py' to test the connection.")
+        print("\n✅ You're all set! Run 'python tests/test_setup.py' to test the connection.")
     else:
         print("\n❓ Would you like me to create a sample credentials file? (y/n): ", end="")
         response = input().lower().strip()

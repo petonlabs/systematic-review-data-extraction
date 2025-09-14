@@ -58,11 +58,11 @@ def show_next_steps():
         print("   → Or follow GOOGLE_SETUP.md")
     else:
         print("2. ✅ Google credentials ready")
-        print("   → Run: python test_setup.py (to verify connection)")
+        print("   → Run: python tests/test_setup.py (to verify connection)")
     
     print("\n3. 🎯 Test the system:")
     print("   → python demo.py (test data extraction)")
-    print("   → python test_setup.py (test full setup)")
+    print("   → python tests/test_setup.py (test full setup)")
     
     print("\n4. 🚀 Start extraction:")
     print("   → python main.py (process all articles)")
@@ -106,7 +106,7 @@ def main():
     print("  • README.md - Complete setup and usage guide")
     print("  • GOOGLE_SETUP.md - Google API setup instructions")
     print("  • demo.py - Test extraction with sample data")
-    print("  • test_setup.py - Verify all components")
+    print("  • tests/test_setup.py - Verify all components")
     
     print("\n🆘 Need help?")
     print("  • Check the logs/ directory for error details")

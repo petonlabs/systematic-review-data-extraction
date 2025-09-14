@@ -112,9 +112,17 @@ class R2Config:
 class Config:
     """Main configuration class."""
     
-    def __init__(self):
+    def __init__(self, spreadsheet_id: str = None):
+        # Use provided spreadsheet_id, environment variable, or default
+        default_spreadsheet_id = "1ki0z_9QHBg4uUCe4HVN5Rx7Tp6kzeIrJCGsnQTZku_Q"
+        final_spreadsheet_id = (
+            spreadsheet_id or 
+            os.getenv('GOOGLE_SHEETS_ID') or 
+            default_spreadsheet_id
+        )
+        
         self.sheets_config = SheetsConfig(
-            spreadsheet_id="1ki0z_9QHBg4uUCe4HVN5Rx7Tp6kzeIrJCGsnQTZku_Q"
+            spreadsheet_id=final_spreadsheet_id
         )
         
         self.fetcher_config = FetcherConfig(

@@ -34,7 +34,7 @@ print("- This skips the verification process")
 print("\n🧪 Test Again:")
 print("After making these changes, run:")
 print("   rm token.json  # Delete old token")
-print("   python test_setup.py")
+print("   python tests/test_setup.py")
 
 print("\n📧 Still having issues?")
 print("Make sure you're using the same Google account that:")

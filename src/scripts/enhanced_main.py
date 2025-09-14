@@ -13,6 +13,9 @@ from pathlib import Path
 import dspy
 from dotenv import load_dotenv
 
+# Add project root to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
 from src.config import Config
 from src.sheets_client import SheetsClient
 from src.enhanced_article_fetcher import EnhancedArticleFetcher
@@ -246,6 +249,36 @@ async def main():
         config = Config()
         config.validate()
         
+        return await main_logic(config, logger)
+        
+    except Exception as e:
+        logger.error(f"Critical error in main execution: {e}")
+        raise
+
+
+async def main_with_config(config: Config):
+    """Main execution function with provided config."""
+    logger = setup_logging()
+    logger.info("🚀 Starting Enhanced Systematic Review Data Extraction Tool")
+    logger.info(f"📊 Using spreadsheet: {config.sheets_config.spreadsheet_id}")
+    
+    # Configure DSPy
+    if not configure_dspy():
+        logger.error("Failed to configure DSPy. Exiting.")
+        return False
+    
+    try:
+        config.validate()
+        return await main_logic(config, logger)
+        
+    except Exception as e:
+        logger.error(f"Critical error in main execution: {e}")
+        raise
+
+
+async def main_logic(config: Config, logger):
+    """Main extraction logic shared by both main functions."""
+    try:
         # Initialize extraction mode manager
         mode_manager = ExtractionModeManager(config)
         

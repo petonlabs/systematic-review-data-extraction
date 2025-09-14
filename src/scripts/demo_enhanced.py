@@ -7,8 +7,8 @@ This script shows the available options without running the full extraction.
 import sys
 from pathlib import Path
 
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
+# Add project root to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.config import Config
 from src.extraction_mode_manager import ExtractionModeManager, ExtractionMethod
